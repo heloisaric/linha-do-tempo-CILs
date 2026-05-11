@@ -1,0 +1,1083 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Linha do Tempo — Centros Interescolares de Línguas</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+
+:root {
+  --green:      #1D9E75;
+  --green-dark: #0F6E56;
+  --green-lt:   #E1F5EE;
+  --green-mid:  #A8DBC9;
+  --bg:         #F2F4F0;
+  --card:       #FFFFFF;
+  --text:       #1A1A1A;
+  --muted:      #6B7280;
+  --border:     #E4E7E4;
+  --shadow:     0 4px 24px rgba(0,0,0,.07);
+}
+
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  padding: 36px 20px 60px;
+  min-height: 100vh;
+}
+
+/* ── PAGE WRAPPER ── */
+.page {
+  background: var(--card);
+  border-radius: 24px;
+  padding: 48px 44px 56px;
+  box-shadow: var(--shadow);
+  max-width: 1600px;
+  margin: 0 auto;
+}
+
+/* ── HEADER ── */
+header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 24px;
+  margin-bottom: 44px;
+  padding-bottom: 24px;
+  border-bottom: 2px solid var(--green-lt);
+  flex-wrap: wrap;
+}
+header .title-block h1 {
+  font-family: 'DM Serif Display', serif;
+  font-size: 30px;
+  color: var(--green-dark);
+  line-height: 1.2;
+  margin-bottom: 6px;
+}
+header .title-block p {
+  color: var(--muted);
+  font-size: 14px;
+}
+.header-badge {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+.hbadge {
+  background: var(--green-lt);
+  color: var(--green-dark);
+  font-size: 12px;
+  font-weight: 600;
+  padding: 6px 14px;
+  border-radius: 20px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.hbadge svg { flex-shrink: 0; }
+
+/* ── SEARCH / FILTER BAR ── */
+.controls {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 32px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+.search-wrap {
+  position: relative;
+  flex: 1;
+  min-width: 200px;
+  max-width: 340px;
+}
+.search-wrap svg {
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--muted);
+  pointer-events: none;
+}
+.search-wrap input {
+  width: 100%;
+  padding: 10px 16px 10px 40px;
+  border: 1.5px solid var(--border);
+  border-radius: 12px;
+  font-family: inherit;
+  font-size: 14px;
+  background: var(--bg);
+  color: var(--text);
+  transition: border-color .2s;
+  outline: none;
+}
+.search-wrap input:focus { border-color: var(--green); }
+
+.filter-pills { display: flex; gap: 8px; flex-wrap: wrap; }
+.pill {
+  padding: 8px 16px;
+  border-radius: 20px;
+  border: 1.5px solid var(--border);
+  background: transparent;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  color: var(--muted);
+  transition: all .2s;
+}
+.pill.active, .pill:hover {
+  background: var(--green);
+  border-color: var(--green);
+  color: #fff;
+}
+
+/* ── COUNTER ── */
+.counter {
+  font-size: 13px;
+  color: var(--muted);
+  margin-bottom: 16px;
+}
+.counter strong { color: var(--green-dark); }
+
+/* ── SCROLL HINTS ── */
+.scroll-container { position: relative; }
+.scroll-hint {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 10;
+  background: var(--card);
+  border: 1.5px solid var(--border);
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0,0,0,.12);
+  transition: all .2s;
+  color: var(--green-dark);
+}
+.scroll-hint:hover { background: var(--green); color: #fff; border-color: var(--green); }
+.scroll-hint.left  { left: -20px; }
+.scroll-hint.right { right: -20px; }
+
+/* ── TIMELINE TRACK ── */
+.timeline {
+  display: flex;
+  gap: 20px;
+  overflow-x: auto;
+  padding: 48px 12px 28px;
+  position: relative;
+  scroll-behavior: smooth;
+  scrollbar-width: thin;
+  scrollbar-color: var(--green-mid) transparent;
+}
+.timeline::-webkit-scrollbar { height: 6px; }
+.timeline::-webkit-scrollbar-track { background: transparent; }
+.timeline::-webkit-scrollbar-thumb { background: var(--green-mid); border-radius: 10px; }
+
+.timeline::before {
+  content: '';
+  position: absolute;
+  top: 82px;
+  left: 0; right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, transparent, var(--green-mid) 5%, var(--green-mid) 95%, transparent);
+  z-index: 0;
+  pointer-events: none;
+}
+
+/* ── ENTRY ── */
+.tl-entry {
+  min-width: 300px;
+  max-width: 300px;
+  position: relative;
+  z-index: 1;
+  flex-shrink: 0;
+  transition: opacity .3s, transform .3s;
+}
+.tl-entry.hidden {
+  display: none;
+}
+
+/* year pill */
+.tl-year {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 20px;
+  position: relative;
+}
+.tl-year::after {
+  content: '';
+  position: absolute;
+  bottom: -12px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 2px;
+  height: 12px;
+  background: var(--green);
+}
+.tl-year-label {
+  background: var(--green);
+  color: #fff;
+  padding: 6px 18px;
+  border-radius: 30px;
+  font-weight: 700;
+  font-size: 13px;
+  letter-spacing: .04em;
+  box-shadow: 0 2px 10px rgba(29,158,117,.3);
+}
+
+/* ── CARD ── */
+.tl-card {
+  background: var(--card);
+  border-radius: 20px;
+  border: 1.5px solid var(--border);
+  border-top: 5px solid var(--green);
+  padding: 20px;
+  cursor: pointer;
+  transition: transform .25s, box-shadow .25s, border-color .25s;
+  box-shadow: 0 2px 10px rgba(0,0,0,.04);
+  position: relative;
+  overflow: hidden;
+}
+.tl-card::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(29,158,117,.04) 0%, transparent 60%);
+  pointer-events: none;
+}
+.tl-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 12px 32px rgba(29,158,117,.15);
+  border-color: var(--green-mid);
+}
+.tl-card.open {
+  border-color: var(--green);
+  box-shadow: 0 8px 28px rgba(29,158,117,.18);
+}
+
+/* card header row */
+.card-head {
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+}
+.cil-icon {
+  width: 68px;
+  height: 68px;
+  background: var(--bg);
+  border-radius: 14px;
+  border: 1px solid var(--border);
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px;
+  flex-shrink: 0;
+}
+.cil-icon img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+/* fallback icon when image missing */
+.cil-icon .fallback {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--green-lt);
+  border-radius: 10px;
+  color: var(--green-dark);
+  font-size: 22px;
+  font-weight: 700;
+  font-family: 'DM Serif Display', serif;
+}
+
+.badge {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 8px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: .05em;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+.badge-fundacao  { background: #FEF3C7; color: #92400E; }
+.badge-expansion { background: var(--green-lt); color: var(--green-dark); }
+
+.card-text h3 {
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1.3;
+  margin-bottom: 4px;
+  color: var(--text);
+}
+
+/* quick summary line */
+.card-summary {
+  font-size: 12px;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+/* toggle chevron */
+.card-toggle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 14px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--green);
+  user-select: none;
+}
+.card-toggle svg {
+  transition: transform .3s;
+}
+.tl-card.open .card-toggle svg {
+  transform: rotate(180deg);
+}
+
+/* expandable body */
+.card-body {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height .4s ease, opacity .3s;
+  opacity: 0;
+}
+.tl-card.open .card-body {
+  max-height: 400px;
+  opacity: 1;
+}
+.card-body-inner {
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+  margin-top: 14px;
+}
+.card-body-inner ul {
+  padding-left: 16px;
+}
+.card-body-inner li {
+  font-size: 13px;
+  line-height: 1.7;
+  color: #444;
+  margin-bottom: 4px;
+}
+.card-body-inner li::marker { color: var(--green); }
+
+/* facts grid */
+.fact-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-top: 12px;
+}
+.fact-chip {
+  background: var(--bg);
+  border-radius: 10px;
+  padding: 8px 12px;
+}
+.fact-chip .label {
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  margin-bottom: 2px;
+}
+.fact-chip .value {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+/* ── EMPTY STATE ── */
+.empty {
+  text-align: center;
+  padding: 60px 20px;
+  color: var(--muted);
+  font-size: 15px;
+  display: none;
+}
+.empty svg { margin-bottom: 16px; }
+
+/* ── FOOTER ── */
+footer {
+  margin-top: 40px;
+  border-top: 1px solid var(--border);
+  padding-top: 16px;
+  text-align: center;
+  color: #aaa;
+  font-size: 11px;
+  letter-spacing: .04em;
+}
+
+/* ── PRINT ── */
+@media print {
+  body { background: #fff; padding: 0; }
+  .page { box-shadow: none; border-radius: 0; }
+  .timeline { overflow: visible; flex-wrap: wrap; }
+  .tl-entry { width: 48%; max-width: none; }
+  .controls, .scroll-hint { display: none; }
+  .card-body { max-height: none !important; opacity: 1 !important; }
+}
+</style>
+</head>
+<body>
+
+<div class="page">
+
+  <header>
+    <div class="title-block">
+      <h1>Linha do Tempo dos Centros<br>Interescolares de Línguas</h1>
+      <p>História da criação e expansão dos CILs do Distrito Federal · clique em cada card para mais detalhes</p>
+    </div>
+    <div class="header-badge">
+      <div class="hbadge">
+        <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M3 21h18M9 8h1m-1 4h1m4-4h1m-1 4h1M5 21V7a2 2 0 012-2h10a2 2 0 012 2v14"/></svg>
+        17 unidades
+      </div>
+      <div class="hbadge">
+        <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+        1975 – 2018
+      </div>
+    </div>
+  </header>
+
+  <!-- CONTROLS -->
+  <div class="controls">
+    <div class="search-wrap">
+      <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+      <input type="text" id="searchInput" placeholder="Buscar CIL…" oninput="filterCards()">
+    </div>
+    <div class="filter-pills">
+      <button class="pill active" data-year="all" onclick="setFilter(this, 'all')">Todos</button>
+      <button class="pill" data-year="1975" onclick="setFilter(this,'1975')">1975</button>
+      <button class="pill" data-year="1985-1987" onclick="setFilter(this,'1985-1987')">1985–87</button>
+      <button class="pill" data-year="1995-1998" onclick="setFilter(this,'1995-1998')">1995–98</button>
+      <button class="pill" data-year="2015-2016" onclick="setFilter(this,'2015-2016')">2015–16</button>
+      <button class="pill" data-year="2018" onclick="setFilter(this,'2018')">2018</button>
+    </div>
+  </div>
+
+  <p class="counter" id="counter">Exibindo <strong id="visCount">17</strong> de 17 unidades</p>
+
+  <!-- TIMELINE -->
+  <div class="scroll-container">
+    <button class="scroll-hint left"  onclick="scrollTL(-320)" aria-label="Rolar para esquerda">
+      <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path d="M15 18l-6-6 6-6"/></svg>
+    </button>
+    <button class="scroll-hint right" onclick="scrollTL(320)" aria-label="Rolar para direita">
+      <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path d="M9 18l6-6-6-6"/></svg>
+    </button>
+
+    <div class="timeline" id="timeline">
+
+      <!-- ══ 1975 ══ -->
+      <div class="tl-entry" data-year="1975" data-name="CIL 01 Brasília">
+        <div class="tl-year"><div class="tl-year-label">1975</div></div>
+        <div class="tl-card" onclick="toggleCard(this)">
+          <div class="card-head">
+            <div class="cil-icon"><img src="CIL- 01- DE-BRASILIA.png" alt="CIL 01 Brasília" onerror="this.parentElement.innerHTML='<div class=\'fallback\'>01</div>'"></div>
+            <div class="card-text">
+              <span class="badge badge-fundacao">Fundação</span>
+              <h3>CIL 01 de Brasília</h3>
+              <p class="card-summary">Primeiro CIL do DF.</p>
+            </div>
+          </div>
+          <div class="card-toggle">
+            <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path d="M19 9l-7 7-7-7"/></svg>
+            Ver detalhes
+          </div>
+          <div class="card-body">
+            <div class="card-body-inner">
+              <ul>
+                <li>Primeiro Centro Interescolar de Línguas do DF.</li>
+                <li>Fundado pela professora <strong>Nilce do Val Galante</strong>.</li>
+                <li>Marco histórico para o ensino público de idiomas no Brasil.</li>
+              </ul>
+              <div class="fact-grid">
+                <div class="fact-chip"><div class="label">Fundação</div><div class="value">1975</div></div>
+                <div class="fact-chip"><div class="label">Região</div><div class="value">Brasília</div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ 1985 ══ -->
+      <div class="tl-entry" data-year="1985" data-name="CIL Ceilândia">
+        <div class="tl-year"><div class="tl-year-label">1985</div></div>
+        <div class="tl-card" onclick="toggleCard(this)">
+          <div class="card-head">
+            <div class="cil-icon"><img src="CIL-Ceilandia-logo.png" alt="CIL Ceilândia" onerror="this.parentElement.innerHTML='<div class=\'fallback\'>CE</div>'"></div>
+            <div class="card-text">
+              <span class="badge badge-expansion">Expansão</span>
+              <h3>CIL de Ceilândia</h3>
+              <p class="card-summary">Primeira expansão da rede.</p>
+            </div>
+          </div>
+          <div class="card-toggle">
+            <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path d="M19 9l-7 7-7-7"/></svg>
+            Ver detalhes
+          </div>
+          <div class="card-body">
+            <div class="card-body-inner">
+              <ul>
+                <li>Primeira expansão da rede CIL, 10 anos após a fundação.</li>
+                <li>Atende uma das maiores regiões administrativas do DF.</li>
+              </ul>
+              <div class="fact-grid">
+                <div class="fact-chip"><div class="label">Fundação</div><div class="value">1985</div></div>
+                <div class="fact-chip"><div class="label">Região</div><div class="value">Ceilândia</div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ 1986 ══ -->
+      <div class="tl-entry" data-year="1986" data-name="CIL Taguatinga">
+        <div class="tl-year"><div class="tl-year-label">1986</div></div>
+        <div class="tl-card" onclick="toggleCard(this)">
+          <div class="card-head">
+            <div class="cil-icon"><img src="cil-taguatinga-logo.png" alt="CIL Taguatinga" onerror="this.parentElement.innerHTML='<div class=\'fallback\'>TG</div>'"></div>
+            <div class="card-text">
+              <span class="badge badge-expansion">Expansão</span>
+              <h3>CIL de Taguatinga</h3>
+              <p class="card-summary">Nova unidade em Taguatinga.</p>
+            </div>
+          </div>
+          <div class="card-toggle">
+            <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path d="M19 9l-7 7-7-7"/></svg>
+            Ver detalhes
+          </div>
+          <div class="card-body">
+            <div class="card-body-inner">
+              <ul>
+                <li>Nova unidade criada em Taguatinga.</li>
+                <li>Reforça a presença dos CILs na região oeste do DF.</li>
+              </ul>
+              <div class="fact-grid">
+                <div class="fact-chip"><div class="label">Fundação</div><div class="value">1986</div></div>
+                <div class="fact-chip"><div class="label">Região</div><div class="value">Taguatinga</div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ 1987 Gama ══ -->
+      <div class="tl-entry" data-year="1987" data-name="CIL do Gama">
+        <div class="tl-year"><div class="tl-year-label">1987</div></div>
+        <div class="tl-card" onclick="toggleCard(this)">
+          <div class="card-head">
+            <div class="cil-icon"><img src="cil-gama-logo.png" alt="CIL Gama" onerror="this.parentElement.innerHTML='<div class=\'fallback\'>GA</div>'"></div>
+            <div class="card-text">
+              <span class="badge badge-expansion">Expansão</span>
+              <h3>CIL do Gama</h3>
+              <p class="card-summary">Criação do CIL do Gama.</p>
+            </div>
+          </div>
+          <div class="card-toggle">
+            <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path d="M19 9l-7 7-7-7"/></svg>
+            Ver detalhes
+          </div>
+          <div class="card-body">
+            <div class="card-body-inner">
+              <ul>
+                <li>Criação do CIL do Gama, expandindo o acesso ao sul do DF.</li>
+                <li>Inaugurado no mesmo ano do CIL de Sobradinho.</li>
+              </ul>
+              <div class="fact-grid">
+                <div class="fact-chip"><div class="label">Fundação</div><div class="value">1987</div></div>
+                <div class="fact-chip"><div class="label">Região</div><div class="value">Gama</div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ 1987 Sobradinho ══ -->
+      <div class="tl-entry" data-year="1987" data-name="CIL Sobradinho">
+        <div class="tl-year"><div class="tl-year-label">1987</div></div>
+        <div class="tl-card" onclick="toggleCard(this)">
+          <div class="card-head">
+            <div class="cil-icon"><img src="cil-sobradinho.png" alt="CIL Sobradinho" onerror="this.parentElement.innerHTML='<div class=\'fallback\'>SO</div>'"></div>
+            <div class="card-text">
+              <span class="badge badge-expansion">Expansão</span>
+              <h3>CIL de Sobradinho</h3>
+              <p class="card-summary">Nova unidade em Sobradinho.</p>
+            </div>
+          </div>
+          <div class="card-toggle">
+            <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path d="M19 9l-7 7-7-7"/></svg>
+            Ver detalhes
+          </div>
+          <div class="card-body">
+            <div class="card-body-inner">
+              <ul>
+                <li>Nova unidade inaugurada em Sobradinho.</li>
+                <li>Amplia a rede para o norte do Distrito Federal.</li>
+              </ul>
+              <div class="fact-grid">
+                <div class="fact-chip"><div class="label">Fundação</div><div class="value">1987</div></div>
+                <div class="fact-chip"><div class="label">Região</div><div class="value">Sobradinho</div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ 1995 Guará ══ -->
+      <div class="tl-entry" data-year="1995" data-name="CIL do Guará">
+        <div class="tl-year"><div class="tl-year-label">1995</div></div>
+        <div class="tl-card" onclick="toggleCard(this)">
+          <div class="card-head">
+            <div class="cil-icon"><img src="cil-guara-logo.png" alt="CIL Guará" onerror="this.parentElement.innerHTML='<div class=\'fallback\'>GU</div>'"></div>
+            <div class="card-text">
+              <span class="badge badge-expansion">Expansão</span>
+              <h3>CIL do Guará</h3>
+              <p class="card-summary">Criação do CIL do Guará.</p>
+            </div>
+          </div>
+          <div class="card-toggle">
+            <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path d="M19 9l-7 7-7-7"/></svg>
+            Ver detalhes
+          </div>
+          <div class="card-body">
+            <div class="card-body-inner">
+              <ul>
+                <li>Criação do CIL do Guará após período de pausa na expansão.</li>
+                <li>Retomada do crescimento da rede na década de 1990.</li>
+              </ul>
+              <div class="fact-grid">
+                <div class="fact-chip"><div class="label">Fundação</div><div class="value">1995</div></div>
+                <div class="fact-chip"><div class="label">Região</div><div class="value">Guará</div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ 1998 CIL 02 ══ -->
+      <div class="tl-entry" data-year="1998" data-name="CIL 02 Brasília">
+        <div class="tl-year"><div class="tl-year-label">1998</div></div>
+        <div class="tl-card" onclick="toggleCard(this)">
+          <div class="card-head">
+            <div class="cil-icon"><img src="cil-2-logo.png" alt="CIL 02 Brasília" onerror="this.parentElement.innerHTML='<div class=\'fallback\'>02</div>'"></div>
+            <div class="card-text">
+              <span class="badge badge-expansion">Expansão</span>
+              <h3>CIL 02 de Brasília</h3>
+              <p class="card-summary">Segunda unidade de Brasília.</p>
+            </div>
+          </div>
+          <div class="card-toggle">
+            <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path d="M19 9l-7 7-7-7"/></svg>
+            Ver detalhes
+          </div>
+          <div class="card-body">
+            <div class="card-body-inner">
+              <ul>
+                <li>Segunda unidade de Brasília, atendendo demanda crescente na capital.</li>
+                <li>Inaugurada no mesmo ano do CIL de Brazlândia.</li>
+              </ul>
+              <div class="fact-grid">
+                <div class="fact-chip"><div class="label">Fundação</div><div class="value">1998</div></div>
+                <div class="fact-chip"><div class="label">Região</div><div class="value">Brasília</div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ 1998 Brazlândia ══ -->
+      <div class="tl-entry" data-year="1998" data-name="CIL Brazlândia">
+        <div class="tl-year"><div class="tl-year-label">1998</div></div>
+        <div class="tl-card" onclick="toggleCard(this)">
+          <div class="card-head">
+            <div class="cil-icon"><img src="cil-brazlandia-logo.png" alt="CIL Brazlândia" onerror="this.parentElement.innerHTML='<div class=\'fallback\'>BZ</div>'"></div>
+            <div class="card-text">
+              <span class="badge badge-expansion">Expansão</span>
+              <h3>CIL de Brazlândia</h3>
+              <p class="card-summary">Nova unidade em Brazlândia.</p>
+            </div>
+          </div>
+          <div class="card-toggle">
+            <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path d="M19 9l-7 7-7-7"/></svg>
+            Ver detalhes
+          </div>
+          <div class="card-body">
+            <div class="card-body-inner">
+              <ul>
+                <li>Nova unidade em Brazlândia, levando o ensino de idiomas à região noroeste do DF.</li>
+              </ul>
+              <div class="fact-grid">
+                <div class="fact-chip"><div class="label">Fundação</div><div class="value">1998</div></div>
+                <div class="fact-chip"><div class="label">Região</div><div class="value">Brazlândia</div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ 2015 Recanto ══ -->
+      <div class="tl-entry" data-year="2015" data-name="CIL Recanto das Emas">
+        <div class="tl-year"><div class="tl-year-label">2015</div></div>
+        <div class="tl-card" onclick="toggleCard(this)">
+          <div class="card-head">
+            <div class="cil-icon"><img src="cil-recanto-das-emas-logo.png" alt="CIL Recanto" onerror="this.parentElement.innerHTML='<div class=\'fallback\'>RE</div>'"></div>
+            <div class="card-text">
+              <span class="badge badge-expansion">Expansão</span>
+              <h3>CIL do Recanto das Emas</h3>
+              <p class="card-summary">Nova fase de expansão da rede.</p>
+            </div>
+          </div>
+          <div class="card-toggle">
+            <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path d="M19 9l-7 7-7-7"/></svg>
+            Ver detalhes
+          </div>
+          <div class="card-body">
+            <div class="card-body-inner">
+              <ul>
+                <li>Inauguração do CIL do Recanto das Emas, início de nova fase de expansão.</li>
+                <li>Três novas unidades foram abertas em 2015.</li>
+              </ul>
+              <div class="fact-grid">
+                <div class="fact-chip"><div class="label">Fundação</div><div class="value">2015</div></div>
+                <div class="fact-chip"><div class="label">Região</div><div class="value">Recanto das Emas</div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ 2015 Planaltina ══ -->
+      <div class="tl-entry" data-year="2015" data-name="CIL Planaltina">
+        <div class="tl-year"><div class="tl-year-label">2015</div></div>
+        <div class="tl-card" onclick="toggleCard(this)">
+          <div class="card-head">
+            <div class="cil-icon"><img src="cil-planaltina-logo.png" alt="CIL Planaltina" onerror="this.parentElement.innerHTML='<div class=\'fallback\'>PL</div>'"></div>
+            <div class="card-text">
+              <span class="badge badge-expansion">Expansão</span>
+              <h3>CIL de Planaltina</h3>
+              <p class="card-summary">Atendimento a Planaltina.</p>
+            </div>
+          </div>
+          <div class="card-toggle">
+            <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path d="M19 9l-7 7-7-7"/></svg>
+            Ver detalhes
+          </div>
+          <div class="card-body">
+            <div class="card-body-inner">
+              <ul>
+                <li>Atendimento à comunidade de Planaltina, uma das mais antigas regiões do DF.</li>
+              </ul>
+              <div class="fact-grid">
+                <div class="fact-chip"><div class="label">Fundação</div><div class="value">2015</div></div>
+                <div class="fact-chip"><div class="label">Região</div><div class="value">Planaltina</div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ 2015 Santa Maria ══ -->
+      <div class="tl-entry" data-year="2015" data-name="CIL Santa Maria">
+        <div class="tl-year"><div class="tl-year-label">2015</div></div>
+        <div class="tl-card" onclick="toggleCard(this)">
+          <div class="card-head">
+            <div class="cil-icon"><img src="cil-santa-logo.png" alt="CIL Santa Maria" onerror="this.parentElement.innerHTML='<div class=\'fallback\'>SM</div>'"></div>
+            <div class="card-text">
+              <span class="badge badge-expansion">Expansão</span>
+              <h3>CIL de Santa Maria</h3>
+              <p class="card-summary">Nova unidade em Santa Maria.</p>
+            </div>
+          </div>
+          <div class="card-toggle">
+            <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path d="M19 9l-7 7-7-7"/></svg>
+            Ver detalhes
+          </div>
+          <div class="card-body">
+            <div class="card-body-inner">
+              <ul>
+                <li>Nova unidade inaugurada em Santa Maria, expandindo a rede ao sul do DF.</li>
+              </ul>
+              <div class="fact-grid">
+                <div class="fact-chip"><div class="label">Fundação</div><div class="value">2015</div></div>
+                <div class="fact-chip"><div class="label">Região</div><div class="value">Santa Maria</div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ 2016 Paranoá ══ -->
+      <div class="tl-entry" data-year="2016" data-name="CIL Paranoá">
+        <div class="tl-year"><div class="tl-year-label">2016</div></div>
+        <div class="tl-card" onclick="toggleCard(this)">
+          <div class="card-head">
+            <div class="cil-icon"><img src="cil-paranoa-logo.png" alt="CIL Paranoá" onerror="this.parentElement.innerHTML='<div class=\'fallback\'>PA</div>'"></div>
+            <div class="card-text">
+              <span class="badge badge-expansion">Expansão</span>
+              <h3>CIL do Paranoá</h3>
+              <p class="card-summary">Ampliação ao Paranoá.</p>
+            </div>
+          </div>
+          <div class="card-toggle">
+            <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path d="M19 9l-7 7-7-7"/></svg>
+            Ver detalhes
+          </div>
+          <div class="card-body">
+            <div class="card-body-inner">
+              <ul>
+                <li>Ampliação da rede para o Paranoá em 2016, um dos anos mais produtivos da história dos CILs.</li>
+              </ul>
+              <div class="fact-grid">
+                <div class="fact-chip"><div class="label">Fundação</div><div class="value">2016</div></div>
+                <div class="fact-chip"><div class="label">Região</div><div class="value">Paranoá</div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ 2016 Samambaia ══ -->
+      <div class="tl-entry" data-year="2016" data-name="CIL Samambaia">
+        <div class="tl-year"><div class="tl-year-label">2016</div></div>
+        <div class="tl-card" onclick="toggleCard(this)">
+          <div class="card-head">
+            <div class="cil-icon"><img src="cil-samambaia-logo.png" alt="CIL Samambaia" onerror="this.parentElement.innerHTML='<div class=\'fallback\'>SA</div>'"></div>
+            <div class="card-text">
+              <span class="badge badge-expansion">Expansão</span>
+              <h3>CIL de Samambaia</h3>
+              <p class="card-summary">Criação do CIL de Samambaia.</p>
+            </div>
+          </div>
+          <div class="card-toggle">
+            <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path d="M19 9l-7 7-7-7"/></svg>
+            Ver detalhes
+          </div>
+          <div class="card-body">
+            <div class="card-body-inner">
+              <ul>
+                <li>Criação do CIL de Samambaia, reforçando a presença da rede na região oeste.</li>
+              </ul>
+              <div class="fact-grid">
+                <div class="fact-chip"><div class="label">Fundação</div><div class="value">2016</div></div>
+                <div class="fact-chip"><div class="label">Região</div><div class="value">Samambaia</div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ 2016 São Sebastião ══ -->
+      <div class="tl-entry" data-year="2016" data-name="CIL São Sebastião">
+        <div class="tl-year"><div class="tl-year-label">2016</div></div>
+        <div class="tl-card" onclick="toggleCard(this)">
+          <div class="card-head">
+            <div class="cil-icon"><img src="cil-saosebastiao-logo.png" alt="CIL São Sebastião" onerror="this.parentElement.innerHTML='<div class=\'fallback\'>SS</div>'"></div>
+            <div class="card-text">
+              <span class="badge badge-expansion">Expansão</span>
+              <h3>CIL de São Sebastião</h3>
+              <p class="card-summary">Nova unidade na região administrativa.</p>
+            </div>
+          </div>
+          <div class="card-toggle">
+            <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path d="M19 9l-7 7-7-7"/></svg>
+            Ver detalhes
+          </div>
+          <div class="card-body">
+            <div class="card-body-inner">
+              <ul>
+                <li>Nova unidade na região administrativa de São Sebastião.</li>
+              </ul>
+              <div class="fact-grid">
+                <div class="fact-chip"><div class="label">Fundação</div><div class="value">2016</div></div>
+                <div class="fact-chip"><div class="label">Região</div><div class="value">São Sebastião</div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ 2016 Núcleo Bandeirante ══ -->
+      <div class="tl-entry" data-year="2016" data-name="CIL Núcleo Bandeirante">
+        <div class="tl-year"><div class="tl-year-label">2016</div></div>
+        <div class="tl-card" onclick="toggleCard(this)">
+          <div class="card-head">
+            <div class="cil-icon"><img src="cil-nucleobandeirante-logo.png" alt="CIL Núcleo Bandeirante" onerror="this.parentElement.innerHTML='<div class=\'fallback\'>NB</div>'"></div>
+            <div class="card-text">
+              <span class="badge badge-expansion">Expansão</span>
+              <h3>CIL do Núcleo Bandeirante</h3>
+              <p class="card-summary">Nova unidade vinculada à regional.</p>
+            </div>
+          </div>
+          <div class="card-toggle">
+            <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path d="M19 9l-7 7-7-7"/></svg>
+            Ver detalhes
+          </div>
+          <div class="card-body">
+            <div class="card-body-inner">
+              <ul>
+                <li>Nova unidade vinculada à regional do Núcleo Bandeirante.</li>
+                <li>Posteriormente deu origem aos CILs do Riacho Fundo I e II.</li>
+              </ul>
+              <div class="fact-grid">
+                <div class="fact-chip"><div class="label">Fundação</div><div class="value">2016</div></div>
+                <div class="fact-chip"><div class="label">Região</div><div class="value">Núcleo Bandeirante</div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ 2018 Riacho Fundo I ══ -->
+      <div class="tl-entry" data-year="2018" data-name="CIL Riacho Fundo I">
+        <div class="tl-year"><div class="tl-year-label">2018</div></div>
+        <div class="tl-card" onclick="toggleCard(this)">
+          <div class="card-head">
+            <div class="cil-icon"><img src="cil-riachofundo1-logo.png" alt="CIL Riacho Fundo I" onerror="this.parentElement.innerHTML='<div class=\'fallback\'>RF1</div>'"></div>
+            <div class="card-text">
+              <span class="badge badge-expansion">Expansão</span>
+              <h3>CIL do Riacho Fundo I</h3>
+              <p class="card-summary">Desmembramento do CIL do Núcleo Bandeirante.</p>
+            </div>
+          </div>
+          <div class="card-toggle">
+            <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path d="M19 9l-7 7-7-7"/></svg>
+            Ver detalhes
+          </div>
+          <div class="card-body">
+            <div class="card-body-inner">
+              <ul>
+                <li>Originado por desmembramento do CIL do Núcleo Bandeirante.</li>
+                <li>Passa a atender de forma independente o Riacho Fundo I.</li>
+              </ul>
+              <div class="fact-grid">
+                <div class="fact-chip"><div class="label">Fundação</div><div class="value">2018</div></div>
+                <div class="fact-chip"><div class="label">Região</div><div class="value">Riacho Fundo I</div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ 2018 Riacho Fundo II ══ -->
+      <div class="tl-entry" data-year="2018" data-name="CIL Riacho Fundo II">
+        <div class="tl-year"><div class="tl-year-label">2018</div></div>
+        <div class="tl-card" onclick="toggleCard(this)">
+          <div class="card-head">
+            <div class="cil-icon"><img src="riacho-fundo-2.png" alt="CIL Riacho Fundo II" onerror="this.parentElement.innerHTML='<div class=\'fallback\'>RF2</div>'"></div>
+            <div class="card-text">
+              <span class="badge badge-expansion">Expansão</span>
+              <h3>CIL do Riacho Fundo II</h3>
+              <p class="card-summary">Nova unidade criada em 2018.</p>
+            </div>
+          </div>
+          <div class="card-toggle">
+            <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path d="M19 9l-7 7-7-7"/></svg>
+            Ver detalhes
+          </div>
+          <div class="card-body">
+            <div class="card-body-inner">
+              <ul>
+                <li>Nova unidade criada em 2018, consolidando a presença da rede no Riacho Fundo.</li>
+                <li>Representa a expansão mais recente registrada na linha do tempo.</li>
+              </ul>
+              <div class="fact-grid">
+                <div class="fact-chip"><div class="label">Fundação</div><div class="value">2018</div></div>
+                <div class="fact-chip"><div class="label">Região</div><div class="value">Riacho Fundo II</div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /timeline -->
+
+    <div class="empty" id="emptyState">
+      <svg width="40" height="40" fill="none" viewBox="0 0 24 24" stroke="#ccc" stroke-width="1.5"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+      <p>Nenhum CIL encontrado para este filtro.</p>
+    </div>
+
+  </div><!-- /scroll-container -->
+
+  <footer>
+    Secretaria de Estado de Educação do Distrito Federal — Centros Interescolares de Línguas
+  </footer>
+
+</div><!-- /page -->
+
+<script>
+let activeFilter = 'all';
+const TOTAL = 17;
+
+function toggleCard(card) {
+  const isOpen = card.classList.contains('open');
+  // close all
+  document.querySelectorAll('.tl-card.open').forEach(c => c.classList.remove('open'));
+  // open clicked if it was closed
+  if (!isOpen) card.classList.add('open');
+}
+
+const yearRanges = {
+  'all':       () => true,
+  '1975':      y => y === 1975,
+  '1985-1987': y => y >= 1985 && y <= 1987,
+  '1995-1998': y => y >= 1995 && y <= 1998,
+  '2015-2016': y => y >= 2015 && y <= 2016,
+  '2018':      y => y === 2018,
+};
+
+function setFilter(btn, value) {
+  document.querySelectorAll('.pill').forEach(p => p.classList.remove('active'));
+  btn.classList.add('active');
+  activeFilter = value;
+  applyFilters();
+}
+
+function filterCards() { applyFilters(); }
+
+function applyFilters() {
+  const q = document.getElementById('searchInput').value.trim().toLowerCase();
+  const fn = yearRanges[activeFilter] || (() => true);
+  let visible = 0;
+
+  document.querySelectorAll('.tl-entry').forEach(entry => {
+    const year = parseInt(entry.dataset.year);
+    const name = entry.dataset.name.toLowerCase();
+    const matchYear = fn(year);
+    const matchSearch = !q || name.includes(q) || String(year).includes(q);
+    if (matchYear && matchSearch) {
+      entry.classList.remove('hidden');
+      visible++;
+    } else {
+      entry.classList.add('hidden');
+      entry.querySelector('.tl-card').classList.remove('open');
+    }
+  });
+
+  document.getElementById('visCount').textContent = visible;
+  document.getElementById('emptyState').style.display = visible === 0 ? 'block' : 'none';
+}
+
+function scrollTL(delta) {
+  document.getElementById('timeline').scrollBy({ left: delta, behavior: 'smooth' });
+}
+</script>
+
+</body>
+</html>
